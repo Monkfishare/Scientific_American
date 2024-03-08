@@ -1,0 +1,82 @@
+name: Scientific American Magazine
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 15 * *' # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+
+env:
+  MAGAZINE_ISSUE_URL: ""
+  # for past editions https://www.scientificamerican.com/archive/issues/
+  # issue_url = 'https://www.scientificamerican.com/issue/sa/2024/01-01/'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y xdg-utils wget xz-utils python3
+          sudo apt-get install -y libxcb-cursor0 libxcb-xinerama0 libegl1 libopengl0
+
+      - name: Install Calibre
+        run: |
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+      - name: Fetch Magazine Epub
+        run: |
+          wget https://raw.githubusercontent.com/kovidgoyal/calibre/master/recipes/scientific_american.recipe -O scientific_american.recipe
+          
+          if [ -n "${MAGAZINE_ISSUE_URL}" ]; then
+            sed -i "s|issue_url = 'https://www.scientificamerican.com' + curr_issue_link.a[\"href\"]|issue_url = '${MAGAZINE_ISSUE_URL}'|" scientific_american.recipe
+          else
+            echo "MAGAZINE_ISSUE_URL is empty. Skipping sed command."
+          fi
+
+          ebook-convert scientific_american.recipe output.epub
+          ebook-meta output.epub > epub_metadata.txt
+          ebook-meta output.epub --get-cover=cover.jpg
+
+      - name: Extract and Print Published Date
+        run: |
+          full_title_date=$(grep "Title" epub_metadata.txt | awk -F'[][]' '{print $2}' | awk '{print $2}')
+          formatted_date=$(date -d "$full_title_date" +"%Y-%m")
+          echo "$formatted_date" > published_date.txt
+
+      - name: Convert EPUB to PDF
+        run: |
+          ebook-convert output.epub output.pdf \
+              --pdf-page-margin-top 30 \
+              --pdf-page-margin-bottom 40 \
+              --base-font-size 13 \
+              --extra-css "styles.css"
+
+      - name: Compress PDF
+        run: |
+          pip install pdf-compressor
+          pdf-compressor --set-api-key ${{ secrets.PDF_COMPRESSOR_API_KEY }}
+          pdf-compressor --compression-level low -i output.pdf
+        env:
+          PDF_COMPRESSOR_API_KEY: ${{ secrets.PDF_COMPRESSOR_API_KEY }}
+
+      - name: Create Scientific American folder
+        run: |
+          folder_name=$(cat published_date.txt)
+          mkdir -p Scientific_American/"$folder_name"
+          mv output.epub Scientific_American/"$folder_name"/SA_"$folder_name".epub
+          mv output.pdf Scientific_American/"$folder_name"/SA_"$folder_name".pdf
+          mv cover.jpg Scientific_American/"$folder_name"/
+          mv epub_metadata.txt Scientific_American/"$folder_name"/
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Scientific_American/*
+          git commit -m "Add Scientific American Magazine"
+          git push
