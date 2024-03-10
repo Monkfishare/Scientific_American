@@ -33,7 +33,7 @@ jobs:
           wget https://raw.githubusercontent.com/kovidgoyal/calibre/master/recipes/scientific_american.recipe -O scientific_american.recipe
           
           if [ -n "${MAGAZINE_ISSUE_URL}" ]; then
-            sed -i "s|issue_url = 'https://www.scientificamerican.com' + curr_issue_link.a[\"href\"]|issue_url = '${MAGAZINE_ISSUE_URL}'|" scientific_american.recipe
+            sed -i "s|issue_url = 'https://www.scientificamerican.com' + curr_issue_link.a[\"href\"]|issue_url = '${MAGAZINE_ISSUE_URL}' + curr_issue_link.a[\"href\"] |" scientific_american.recipe
           else
             echo "MAGAZINE_ISSUE_URL is empty. Skipping sed command."
           fi
