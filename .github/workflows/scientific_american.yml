@@ -8,7 +8,7 @@ on:
     - cron: '0 0 15 * *' # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
 
 env:
-  MAGAZINE_ISSUE_URL: ""
+  MAGAZINE_ISSUE_URL: "https://www.scientificamerican.com/issue/sa/2024/01-01/"
   # for past editions https://www.scientificamerican.com/archive/issues/
   # issue_url = 'https://www.scientificamerican.com/issue/sa/2024/01-01/'
 
