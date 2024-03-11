@@ -6,7 +6,7 @@ edition_info_file = "published_date.txt"
 auto_fetch_current_date = False  # Set to False if you want to manually set the edition year and month
                                 # Set to True if you want to automatically fetch the edition year and month
 manual_edition_year = "2023"
-manual_edition_month = "11"  # Replace with the desired month (e.g., "01" for January, "12" for December)
+manual_edition_month = "12"  # Replace with the desired month (e.g., "01" for January, "12" for December)
 
 with open(recipe_file, 'r', encoding='utf-8') as file:
     recipe_content = file.read()
