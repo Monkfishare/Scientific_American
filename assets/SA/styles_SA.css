@@ -3,9 +3,9 @@ a {
 }
 
 img {
-  max-width: 100%;
-  height: auto;
+  max-width: 70%;
   display: block;
+  margin: auto;
 }
 
 [class^="calibre_navbar"] {
